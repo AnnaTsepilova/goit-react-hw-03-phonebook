@@ -9,6 +9,7 @@ import Section from 'components/Section/Section';
 import ContactForm from 'components/ContactForm/ContactForm';
 import ContactsList from 'components/ContactsList/ContactsList';
 import Filter from 'components/Filter/Filter';
+import initialContacts from 'components/data/contacts.json';
 
 class App extends Component {
   static defaultProps = {};
@@ -19,14 +20,27 @@ class App extends Component {
   };
 
   state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
+    contacts: initialContacts,
     filter: '',
   };
+
+  contactDeleteHandler = contactId => {
+    this.setState(
+      ({ contacts }) => ({
+        contacts: contacts.filter(contact => contact.id !== contactId),
+      }),
+      Notify.success('Contact is deleted', {
+        fontSize: '16px',
+        width: '350px',
+      })
+    );
+  };
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.contacts !== prevState.contacts) {
+      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
+    }
+  }
 
   formSubmitHandler = data => {
     let id = nanoid();
@@ -62,17 +76,14 @@ class App extends Component {
     );
   };
 
-  contactDeleteHandler = contactId => {
-    this.setState(
-      ({ contacts }) => ({
-        contacts: contacts.filter(contact => contact.id !== contactId),
-      }),
-      Notify.success('Contact is deleted', {
-        fontSize: '16px',
-        width: '350px',
-      })
-    );
-  };
+  componentDidMount() {
+    const contacts = localStorage.getItem('contacts');
+    const parsedContacts = JSON.parse(contacts);
+
+    if (parsedContacts) {
+      this.setState({ contacts: parsedContacts });
+    }
+  }
 
   render() {
     return (
